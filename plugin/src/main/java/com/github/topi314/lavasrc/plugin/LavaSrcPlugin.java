@@ -12,6 +12,7 @@ import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.plugin.config.*;
 import com.github.topi314.lavasrc.protocol.Config;
 import com.github.topi314.lavasrc.qobuz.QobuzAudioSourceManager;
+import com.github.topi314.lavasrc.ripsrc.RipSrcAudioSourceManager;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.github.topi314.lavasrc.tidal.TidalSourceManager;
 import com.github.topi314.lavasrc.vkmusic.VkMusicSourceManager;
@@ -47,6 +48,7 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 	private TidalSourceManager tidal;
 	private QobuzAudioSourceManager qobuz;
 	private YtdlpAudioSourceManager ytdlp;
+	private RipSrcAudioSourceManager ripsrc;
 
 	public LavaSrcPlugin(
 		LavaSrcConfig pluginConfig,
@@ -61,7 +63,8 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		VkMusicConfig vkMusicConfig,
 		TidalConfig tidalConfig,
 		QobuzConfig qobuzConfig,
-		YtdlpConfig ytdlpConfig
+		YtdlpConfig ytdlpConfig,
+		RipSrcConfig ripSrcConfig
 	) {
 		log.info("Loading LavaSrc plugin...");
 		this.sourcesConfig = sourcesConfig;
@@ -153,6 +156,9 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (sourcesConfig.isYtdlp()) {
 			this.ytdlp = new YtdlpAudioSourceManager(ytdlpConfig.getPath(), ytdlpConfig.getSearchLimit(), ytdlpConfig.getCustomLoadArgs(), ytdlpConfig.getCustomPlaybackArgs());
 		}
+		if (sourcesConfig.isRipsrc()) {
+			this.ripsrc = new RipSrcAudioSourceManager(ripSrcConfig.getApiKey(), ripSrcConfig.getBaseUrl(), ripSrcConfig.getSourceName(), ripSrcConfig.getUserAgent(), ripSrcConfig.isExternal());
+		}
 	}
 
 	private boolean hasNewYoutubeSource() {
@@ -204,6 +210,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 			log.info("Registering YTDLP audio source manager...");
 			manager.registerSourceManager(this.ytdlp);
 		}
+		if (this.ripsrc != null) {
+			log.info("Registering RipSrc audio source manager...");
+			manager.registerSourceManager(this.ripsrc);
+		}
 		return manager;
 	}
 
@@ -233,6 +243,10 @@ public class LavaSrcPlugin implements AudioPlayerManagerConfiguration, SearchMan
 		if (this.vkMusic != null && this.sourcesConfig.isVkMusic()) {
 			log.info("Registering VK Music search manager...");
 			manager.registerSearchManager(this.vkMusic);
+		}
+		if (this.ripsrc != null && this.sourcesConfig.isRipsrc()) {
+			log.info("Registering RipSrc search manager...");
+			manager.registerSearchManager(this.ripsrc);
 		}
 		return manager;
 	}

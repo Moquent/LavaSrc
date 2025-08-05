@@ -17,6 +17,7 @@ plugins:
       tidal: false # Enable Tidal source
       qobuz: false # Enabled qobuz source
       ytdlp: false # Enable yt-dlp source
+      ripsrc: false # Enable RipSrc source
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
@@ -83,6 +84,12 @@ plugins:
       searchLimit: 10 # How many search results should be returned
 #      customLoadArgs: ["-q", "--no-warnings", "--flat-playlist", "--skip-download", "-J"] # Custom arguments to pass to yt-dlp
 #      customPlaybackArgs: ["-q", "--no-warnings", "-f", "bestaudio", "-J"] # Custom arguments for yt-dlp
+    ripsrc:
+      apiKey: "your-api-key" # the API key for your RipSrc instance
+      baseUrl: "https://your-ripsrc-instance.com/api/search" # the base URL for your RipSrc instance
+      sourceName: "RipSrc" # Optional custom source name (defaults to "ripsrc")
+      userAgent: "LavaSrc" # Optional custom user agent (defaults to "LavaSrc")
+      external: false # Whether to include external sources in ISRC searches
 
 server: # REST and WS server
   port: 2333

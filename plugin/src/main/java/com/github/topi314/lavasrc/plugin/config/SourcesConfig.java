@@ -18,6 +18,7 @@ public class SourcesConfig {
 	private boolean qobuz = false;
 	private boolean tidal = false;
 	private boolean ytdlp = false;
+	private boolean ripsrc = false;
 
 	public boolean isSpotify() {
 		return this.spotify;
@@ -97,5 +98,13 @@ public class SourcesConfig {
 
 	public void setYtdlp(boolean ytdlp) {
 		this.ytdlp = ytdlp;
+	}
+
+	public boolean isRipsrc() {
+		return this.ripsrc;
+	}
+
+	public void setRipsrc(boolean ripsrc) {
+		this.ripsrc = ripsrc;
 	}
 }
