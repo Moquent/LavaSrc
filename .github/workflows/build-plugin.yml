@@ -1,0 +1,63 @@
+name: Build Plugin JAR
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - 'plugin/**'
+      - 'main/**'
+      - '*.gradle*'
+      - 'gradle/**'
+
+jobs:
+  build-plugin:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+    
+    - name: Build plugin JAR
+      run: ./gradlew :plugin:jar
+    
+    - name: List built files
+      run: |
+        echo "Plugin build output:"
+        find plugin/build/libs -name "*.jar" -type f || echo "No plugin jars found"
+        echo "Main build output:"
+        find main/build/libs -name "*.jar" -type f || echo "No main jars found"
+    
+    - name: Upload Plugin JAR
+      uses: actions/upload-artifact@v4
+      with:
+        name: lavasrc-plugin-jar
+        path: plugin/build/libs/*.jar
+        if-no-files-found: error
+    
+    - name: Create Release on Tag
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: plugin/build/libs/*.jar
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,91 @@
+name: Build and Release LavaSrc Plugin
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+    
+    - name: Build with Gradle
+      run: ./gradlew jar
+    
+    - name: Upload plugin jar as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: lavasrc-plugin
+        path: plugin/build/libs/*.jar
+        retention-days: 30
+    
+    - name: Upload main jar as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: lavasrc-main
+        path: main/build/libs/*.jar
+        retention-days: 30
+
+  release:
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+    
+    - name: Build with Gradle
+      run: ./gradlew jar
+    
+    - name: Get plugin jar name
+      id: jar_name
+      run: |
+        JAR_FILE=$(find plugin/build/libs -name "*.jar" -type f | head -n 1)
+        echo "jar_path=$JAR_FILE" >> $GITHUB_OUTPUT
+        echo "jar_name=$(basename $JAR_FILE)" >> $GITHUB_OUTPUT
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ${{ steps.jar_name.outputs.jar_path }}
+        asset_name: ${{ steps.jar_name.outputs.jar_name }}
+        asset_content_type: application/java-archive
